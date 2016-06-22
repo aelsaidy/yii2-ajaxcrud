@@ -16,6 +16,10 @@ Features
 + Bulk delete suport
 + Pjax widget suport
 + Export function(pdf,html,text,csv,excel,json)
++ add by elsaidy:
++   a) Support Multi-Language
++   b) Support Multi Grid
++   c) Fix Modal with Select2
 
 Installation
 ------------
