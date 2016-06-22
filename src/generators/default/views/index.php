@@ -12,6 +12,8 @@ use yii\helpers\Html;
 
 $urlParams = $generator->generateUrlParams();
 $nameAttribute = $generator->getNameAttribute();
+$controlername = $generator->getControllerID();
+
 echo "<?php\n";
 ?>
 use yii\helpers\Url;
@@ -34,19 +36,20 @@ CrudAsset::register($this);
 <div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-index">
     <div id="ajaxCrudDatatable">
         <?="<?="?>GridView::widget([
-            'id'=>'crud-datatable',
+            'id'=>'crud-datatable-<?= $controlername ?>',
             'dataProvider' => $dataProvider,
             'filterModel' => $searchModel,
+            'pjaxSettings' => ['options' => ['id' => 'crud-<?= $controlername ?>-pjax']],
             'pjax'=>true,
             'columns' => require(__DIR__.'/_columns.php'),
             'toolbar'=> [
                 ['content'=>
                     Html::a('<i class="glyphicon glyphicon-plus"></i>', ['create'],
-                    ['role'=>'modal-remote','title'=> 'Create new <?= Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass))) ?>','class'=>'btn btn-default']).
-                    Html::a('<i class="glyphicon glyphicon-repeat"></i>', [''],
-                    ['data-pjax'=>1, 'class'=>'btn btn-default', 'title'=>'Reset Grid']).
-                    '{toggleData}'.
-                    '{export}'
+                    ['role'=>'modal-remote','title'=> Yii::t('backend','Create new').' <?= Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass))) ?>','class'=>'btn btn-default'])//.
+                    //Html::a('<i class="glyphicon glyphicon-repeat"></i>', [''],
+                    //['data-pjax'=>1, 'class'=>'btn btn-default', 'title'=>'Reset Grid']).
+                    //'{toggleData}'.
+                    //'{export}'
                 ],
             ],          
             'striped' => true,
@@ -55,27 +58,33 @@ CrudAsset::register($this);
             'panel' => [
                 'type' => 'primary', 
                 'heading' => '<i class="glyphicon glyphicon-list"></i> <?= Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass))) ?> listing',
-                'before'=>'<em>* Resize table columns just like a spreadsheet by dragging the column edges.</em>',
-                'after'=>BulkButtonWidget::widget([
-                            'buttons'=>Html::a('<i class="glyphicon glyphicon-trash"></i>&nbsp; Delete All',
-                                ["bulk-delete"] ,
-                                [
-                                    "class"=>"btn btn-danger btn-xs",
-                                    'role'=>'modal-remote-bulk',
-                                    'data-confirm'=>false, 'data-method'=>false,// for overide yii data api
-                                    'data-request-method'=>'post',
-                                    'data-confirm-title'=>'Are you sure?',
-                                    'data-confirm-message'=>'Are you sure want to delete this item'
-                                ]),
-                        ]).                        
+                'before'=>Yii::t('backend','<em>* Resize table columns just like a spreadsheet by dragging the column edges.</em>'),
+               'after' => BulkButtonWidget::widget([
+                                                'buttons' => Html::a('<i class="glyphicon glyphicon-trash"></i>&nbsp; ' . Yii::t('backend', 'Delete All'), ["/<?= $controlername ?>/bulk-delete"], [
+                                                    "class" => "btn btn-danger btn-xs",
+                                                    'role' => 'modal-remote-bulk',
+                                                    'data-confirm' => false, 'data-method' => false, // for overide yii data api
+                                                    'data-request-method' => 'post',
+                                                    'data-confirm-title' => Yii::t('backend', 'Are you sure?'),
+                                                    'data-confirm-message' => Yii::t('backend', 'Are you sure want to delete this item')
+                                                ]),
+                                            ]) .                        
                         '<div class="clearfix"></div>',
             ]
         ])<?="?>\n"?>
     </div>
 </div>
-<?='<?php Modal::begin([
+
+
+<?='
+    
+    <?php 
+    $this->registerJs("$.fn.modal.Constructor.prototype.enforceFocus = function() {};", \yii\web\View::POS_END);
+    Modal::begin([
     "id"=>"ajaxCrudModal",
+    "options" => [
+        "tabindex" => FALSE // important for Select2 to work properly
+    ],
     "footer"=>"",// always need it for jquery plugin
 ])?>'."\n"?>
 <?='<?php Modal::end(); ?>'?>
-
